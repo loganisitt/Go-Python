@@ -16,11 +16,13 @@ class WelcomeWidget(QtGui.QWidget):
     def initUI(self):
         self.grid = QtGui.QGridLayout() 
         self.setLayout(self.grid)
+
         username_lbl = QtGui.QLabel("Username:")
         password_lbl = QtGui.QLabel("Password:")
 
         self.username_field = QtGui.QLineEdit(self)
         self.password_field = QtGui.QLineEdit(self)
+        self.password_field.setEchoMode(QtGui.QLineEdit.Password)
 
         self.grid.addWidget(username_lbl, 0, 0)
         self.grid.addWidget(self.username_field, 0, 1)
@@ -54,7 +56,7 @@ class SignUpWindow(QtGui.QDialog):
         self.initUI()
 
     def initUI(self):
-        self.grid = QtGui.QGridLayout() 
+        self.grid = QtGui.QGridLayout()
         self.setLayout(self.grid)
 
         username_lbl = QtGui.QLabel("Username:")
@@ -62,6 +64,7 @@ class SignUpWindow(QtGui.QDialog):
 
         self.username_field = QtGui.QLineEdit(self)
         self.password_field = QtGui.QLineEdit(self)
+        self.password_field.setEchoMode(QtGui.QLineEdit.Password)
 
         first_name_lbl = QtGui.QLabel("First Name:")
         last_name_lbl = QtGui.QLabel("Last Name:")
@@ -94,13 +97,6 @@ class SignUpWindow(QtGui.QDialog):
     	fn = str(self.first_name_field.text())
     	ln = str(self.last_name_field.text())
 
-    	# Empty fields check
-
     	u = User.signup(un, ps, firstname=fn, lastname=ln)
     	if (u is not None):
     	    self.close()
-
-
-
-
-

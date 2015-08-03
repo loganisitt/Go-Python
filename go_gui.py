@@ -27,7 +27,8 @@ class GoApp(QtGui.QMainWindow):
 
         self.welcome_widget = WelcomeWidget(self)
         self.setCentralWidget(self.welcome_widget)
-
+    
+        self.resize(200, 150)
         self.setWindowTitle('Go')
         self.show()
 
@@ -36,7 +37,12 @@ class GoApp(QtGui.QMainWindow):
         self.setCentralWidget(self.events_widget)
         self.resize(500, 200)
         self.center()
-        print "Success"
+
+    def loggedOutUser(self):
+    	self.welcome_widget = WelcomeWidget(self)
+        self.setCentralWidget(self.welcome_widget)
+        self.resize(200, 150)
+        self.center()
 
     def center(self):
         qr = self.frameGeometry()
@@ -47,11 +53,6 @@ class GoApp(QtGui.QMainWindow):
 
     def closeEvent(self, event):
     	event.accept()
-        # reply = QtGui.QMessageBox.question(self, 'Message', "Are you sure?", QtGui.QMessageBox.Yes | QtGui.QMessageBox.No, QtGui.QMessageBox.No)
-        # if reply == QtGui.QMessageBox.Yes:
-        #     event.accept()
-        # else:
-        #     event.ignore()
 
 app = QtGui.QApplication(sys.argv)
 go_app = GoApp()
