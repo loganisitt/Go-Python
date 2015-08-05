@@ -3,6 +3,7 @@ Logan Isitt
 lai12
 """
 import sys
+from functools import partial
 from PyQt4 import QtGui, QtCore, Qt
 from PyQt4.QtGui import QDateTimeEdit
 from PyQt4.QtCore import QDateTime
@@ -25,6 +26,7 @@ class EventsWidget(QtGui.QWidget):
         self.setLayout(self.grid)
 
         events_lbl = QtGui.QLabel("Events")
+        user_lbl = QtGui.QLabel(self.user.firstname + " " + self.user.lastname)
 
         self.create_btn = QtGui.QPushButton("Create Event")
         self.create_btn.clicked.connect(self.createEventAction)
@@ -33,7 +35,8 @@ class EventsWidget(QtGui.QWidget):
         self.logout_btn.clicked.connect(self.logoutAction)
 
         self.grid.addWidget(events_lbl, 0, 0)
-        self.grid.addWidget(self.create_btn, 0, 2)
+        self.grid.addWidget(self.create_btn, 0, 1)
+        self.grid.addWidget(user_lbl, 0, 2)
         self.grid.addWidget(self.logout_btn, 0, 3)
 
         self.events_list = QtGui.QWidget(self)
@@ -65,7 +68,7 @@ class EventsList(QtGui.QWidget):
         self.grid = QtGui.QGridLayout() 
         self.setLayout(self.grid)
 
-        all_events = Event.Query.all()
+        self.all_events = Event.Query.all()
 
         name_lbl = QtGui.QLabel("Name")
         date_lbl = QtGui.QLabel("Date")
@@ -74,7 +77,7 @@ class EventsList(QtGui.QWidget):
         self.grid.addWidget(date_lbl, 0, 2)
         self.grid.addWidget(atts_lbl, 0, 3)
 
-        for idx, event in enumerate(all_events):
+        for idx, event in enumerate(self.all_events):
             name_lbl = QtGui.QLabel(event.name)
             date_lbl = QtGui.QLabel(str(event.date))
             atts_lbl = QtGui.QLabel(str(len(event.attendees)))
@@ -83,12 +86,12 @@ class EventsList(QtGui.QWidget):
             self.grid.addWidget(atts_lbl, idx + 1, 3)
 
             view_btn = QtGui.QPushButton("View")
-            view_btn.clicked.connect(lambda: self.viewEvent(event))
+            view_btn.clicked.connect(partial(self.viewEvent, event))
             self.grid.addWidget(view_btn, idx + 1, 0)
 
             if (self.user.objectId == event.owner.objectId):
                 delete_btn = QtGui.QPushButton("Delete")
-                delete_btn.clicked.connect(lambda: self.deleteEvent(event))
+                delete_btn.clicked.connect(partial(self.deleteEvent, event))
                 self.grid.addWidget(delete_btn, idx + 1, 4)
 
     def viewEvent(self, event):
@@ -150,6 +153,7 @@ class EventDialog(QtGui.QDialog):
         super(EventDialog, self).__init__(parent)
         self.user = user
         self.event = event
+        self.parent = parent
         self.initUI()
 
     def initUI(self):
@@ -194,9 +198,21 @@ class EventDialog(QtGui.QDialog):
         self.grid.addWidget(self.join_btn, 4, 0, 1, 2)
 
     def join(self, event):
+
+        shouldAdd = True
         for idx, obj in enumerate(self.event.attendees):
             if (obj['objectId'] == self.user.objectId):
+                shouldAdd = False
                 self.event.attendees.remove(obj)
+
+        if (shouldAdd):
+            self.join_btn.setText("Leave")
+            self.event.attendees.append(self.user)
+        else:
+            self.join_btn.setText("Join")
+        self.event.save()
+
+        self.event = Event.Query.get(objectId=self.event.objectId)
 
         self.attendees_list = QtGui.QWidget(self)
         self.atts_layout = QtGui.QGridLayout()
@@ -213,7 +229,10 @@ class EventDialog(QtGui.QDialog):
             self.atts_layout.addWidget(last_name_lbl, idx, 1)
 
         self.scroll.setWidget(self.attendees_list)
-        self.event.save()
+
+    def closeEvent(self, event):
+        self.parent.parent.updateEventList()
+        event.accept()
 
 class Event(Object):
     pass
